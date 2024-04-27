@@ -31,6 +31,10 @@
 #define DIR_CALIBRATIONS "/calibrations"
 #define DIR_TEMPERATURE_CALIBRATIONS "/tempcalibrations"
 
+#ifdef USE_ESPNOW_COMMUNICATION
+#define RECEIVER_MAC_ADDRESS_PATH "receiver_mac_address.bin"
+#endif
+
 namespace SlimeVR {
     namespace Configuration {
         void Configuration::setup() {
@@ -83,6 +87,12 @@ namespace SlimeVR {
             }
 
             loadCalibrations();
+
+            #ifdef USE_ESPNOW_COMMUNICATION
+            if (loadReceiverMacAddress()) {
+                m_hasReceiverMacAddress = true;
+            }
+            #endif
 
             m_Loaded = true;
 
@@ -242,6 +252,16 @@ namespace SlimeVR {
             return true;
         }
 
+        #ifdef USE_ESPNOW_COMMUNICATION
+        bool Configuration::hasReceiverMacAddress() {
+            return m_hasReceiverMacAddress;
+        }
+
+        const std::array<uint8_t, 6> &Configuration::getReceiverMacAddress() {
+            return m_receiverMacAddress;
+        }
+        #endif
+
         bool Configuration::runMigrations(int32_t version) {
             return true;
         }
@@ -318,5 +338,39 @@ namespace SlimeVR {
                 }
             }
         }
-    }
+
+#ifdef USE_ESPNOW_COMMUNICATION
+
+        bool Configuration::loadReceiverMacAddress() {
+            if (!LittleFS.exists(RECEIVER_MAC_ADDRESS_PATH)) {
+                return false;
+            }
+
+            m_Logger.info("Found receiver mac address configuration!\n");
+
+			auto f = SlimeVR::Utils::openFile(RECEIVER_MAC_ADDRESS_PATH, "r");
+            f.read(m_receiverMacAddress.data(), sizeof(uint8_t) * m_receiverMacAddress.size());
+            f.close();
+
+            return true;
+        }
+
+        bool Configuration::saveReceiverMacAddress(std::array<uint8_t, 6> receiverAddress) {
+            m_Logger.info("Saving receiver mac address configuration!\n");
+
+            File file = LittleFS.open(RECEIVER_MAC_ADDRESS_PATH, "w");
+            file.write((uint8_t*)receiverAddress.data(), sizeof(uint8_t) * receiverAddress.size());
+            file.close();
+
+            for (auto i = 0u; i < receiverAddress.size(); i++) {
+                m_receiverMacAddress[i] = receiverAddress[i];
+            }
+            m_hasReceiverMacAddress = true;
+
+            m_Logger.info("Saved receiver mac address configuration!\n");
+            return true;
+        }
+
+#endif
+	}
 }

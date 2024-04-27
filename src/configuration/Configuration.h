@@ -29,6 +29,7 @@
 #include "DeviceConfig.h"
 #include "logging/Logger.h"
 #include "../motionprocessing/GyroTemperatureCalibrator.h"
+#include "globals.h"
 
 namespace SlimeVR {
     namespace Configuration {
@@ -50,6 +51,12 @@ namespace SlimeVR {
             bool loadTemperatureCalibration(uint8_t sensorId, GyroTemperatureCalibrationConfig& config);
             bool saveTemperatureCalibration(uint8_t sensorId, const GyroTemperatureCalibrationConfig& config);
 
+            #ifdef USE_ESPNOW_COMMUNICATION
+        public:
+            bool hasReceiverMacAddress();
+            const std::array<uint8_t, 6> &getReceiverMacAddress();
+            #endif
+
         private:
             void loadCalibrations();
             bool runMigrations(int32_t version);
@@ -60,6 +67,17 @@ namespace SlimeVR {
             std::vector<CalibrationConfig> m_Calibrations;
 
             Logging::Logger m_Logger = Logging::Logger("Configuration");
+
+            #ifdef USE_ESPNOW_COMMUNICATION
+        private:
+            std::array<uint8_t, 6> m_receiverMacAddress = {
+                0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+            };
+            bool m_hasReceiverMacAddress = false;
+            bool loadReceiverMacAddress();
+            bool saveReceiverMacAddress(std::array<uint8_t, 6> receiverAddress);
+            #endif
+
         };
     }
 }

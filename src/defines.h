@@ -26,9 +26,9 @@
 // ================================================
 
 // Set parameters of IMU and board used
-#define IMU IMU_BNO085
+#define IMU IMU_BMI160
 #define SECOND_IMU IMU
-#define BOARD BOARD_SLIMEVR
+#define BOARD BOARD_WEMOSD1MINI
 #define IMU_ROTATION DEG_270
 #define SECOND_IMU_ROTATION DEG_270
 
@@ -36,6 +36,8 @@
 #define SECONDARY_IMU_OPTIONAL true
 
 #define MAX_IMU_COUNT 2
+
+#define USE_ESPNOW_COMMUNICATION
 
 // Axis mapping example
 /*
