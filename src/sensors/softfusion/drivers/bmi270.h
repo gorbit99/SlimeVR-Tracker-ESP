@@ -414,6 +414,10 @@ struct BMI270
         }
     }
 
+    void deinitalize()
+    {
+        i2c.writeReg(Regs::PwrCtrl::reg, Regs::PwrCtrl::valueOff);
+    }
 };
 
 } // namespace
