@@ -39,14 +39,12 @@ struct LSM6DSOutputHandler
 
     I2CImpl i2c;
     SlimeVR::Logging::Logger &logger;
+    float currentTemperature = 25;
 
     template<typename Regs>
-    float getDirectTemp() const
+    float getTemperature() const
     {
-        const auto value = static_cast<int16_t>(i2c.readReg16(Regs::OutTemp));
-        float result = ((float)value / 256.0f) + 25.0f;
-
-        return result;
+        return currentTemperature;
     }
 
     #pragma pack(push, 1)
@@ -82,7 +80,11 @@ struct LSM6DSOutputHandler
                 case 0x02: // Accel NC
                     processAccelSample(entry.xyz, AccTs);
                     break;
-            }
+                case 0x03: { // Temperature
+					currentTemperature = static_cast<float>(entry.xyz[0]) / 256.0f + 25.0f;
+                    break;
+                }
+			}
         }      
     }
 

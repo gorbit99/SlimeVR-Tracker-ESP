@@ -78,7 +78,7 @@ class SoftFusionSensor : public Sensor
         constexpr uint32_t sendInterval = 1.0f/maxSendRateHz * 1e6;
         uint32_t elapsed = now - m_lastTemperaturePacketSent;
         if (elapsed >= sendInterval) {
-            const float temperature = m_sensor.getDirectTemp();
+            const float temperature = m_sensor.getTemperature();
             m_lastTemperaturePacketSent = now - (elapsed - sendInterval);
             networkConnection.sendTemperature(sensorId, temperature);
         }
@@ -322,7 +322,7 @@ public:
         eatSamplesForSeconds(GyroCalibDelaySeconds);
         ledManager.off();
 
-        m_calibration.temperature = m_sensor.getDirectTemp();
+        m_calibration.temperature = m_sensor.getTemperature();
         m_Logger.trace("Calibration temperature: %f", m_calibration.temperature);
 
         ledManager.pattern(100, 100, 3);

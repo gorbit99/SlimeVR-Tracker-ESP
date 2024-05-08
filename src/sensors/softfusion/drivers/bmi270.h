@@ -350,7 +350,7 @@ struct BMI270
         setNormalConfig(gyroSensitivity);
     }
 
-    float getDirectTemp() const
+    float getTemperature() const
     {
         // middle value is 23 degrees C (0x0000)
         // temperature per step from -41 + 1/2^9 degrees C (0x8001) to 87 - 1/2^9 degrees C (0x7FFF)

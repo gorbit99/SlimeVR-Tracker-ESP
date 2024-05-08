@@ -93,7 +93,7 @@ struct LSM6DSV : LSM6DSOutputHandler<I2CImpl>
         };
         struct FifoCtrl4Mode {
             static constexpr uint8_t reg = 0x0a;
-            static constexpr uint8_t value = (0b110); //continuous mode
+            static constexpr uint8_t value = (0b00010110); //continuous mode, temperature at 1.875Hz
         };
 
         static constexpr uint8_t FifoStatus = 0x1b;
@@ -120,9 +120,9 @@ struct LSM6DSV : LSM6DSOutputHandler<I2CImpl>
         return true;
     }
 
-    float getDirectTemp() const
+    float getTemperature() const
     {
-        return LSM6DSOutputHandler<I2CImpl>::template getDirectTemp<Regs>();
+        return LSM6DSOutputHandler<I2CImpl>::template getTemperature<Regs>();
     }
 
     template <typename AccelCall, typename GyroCall>

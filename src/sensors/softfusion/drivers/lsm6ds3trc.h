@@ -100,7 +100,7 @@ struct LSM6DS3TRC
         return true;
     }
 
-    float getDirectTemp() const
+    float getTemperature() const
     {
         const auto value = static_cast<int16_t>(i2c.readReg16(Regs::OutTemp));
         float result = ((float)value / 256.0f) + 25.0f;

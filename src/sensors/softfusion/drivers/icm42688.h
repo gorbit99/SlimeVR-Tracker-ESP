@@ -133,7 +133,7 @@ struct ICM42688
         return true;
     }
 
-    float getDirectTemp() const
+    float getTemperature() const
     {
         const auto value = static_cast<int16_t>(i2c.readReg16(Regs::TempData));
         float result = ((float)value / 132.48f) + 25.0f;

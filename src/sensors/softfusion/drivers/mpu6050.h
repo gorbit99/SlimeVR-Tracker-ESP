@@ -134,7 +134,7 @@ struct MPU6050
         return true;
     }
 
-    float getDirectTemp() const
+    float getTemperature() const
     {
         auto value = byteSwap(i2c.readReg16(Regs::OutTemp));
         float result = (static_cast<int16_t>(value) / 340.0f) + 36.53f;

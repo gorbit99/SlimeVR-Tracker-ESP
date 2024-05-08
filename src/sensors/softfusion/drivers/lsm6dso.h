@@ -105,9 +105,9 @@ struct LSM6DSO : LSM6DSOutputHandler<I2CImpl>
         return true;
     }
 
-    float getDirectTemp() const
+    float getTemperature() const
     {
-        return LSM6DSOutputHandler<I2CImpl>::template getDirectTemp<Regs>();
+        return LSM6DSOutputHandler<I2CImpl>::template getTemperature<Regs>();
     }
 
     template <typename AccelCall, typename GyroCall>
