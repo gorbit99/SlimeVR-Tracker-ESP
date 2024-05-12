@@ -81,7 +81,7 @@ struct LSM6DSR : LSM6DSOutputHandler<I2CImpl>
         };
         struct FifoCtrl4Mode {
             static constexpr uint8_t reg = 0x0a;
-            static constexpr uint8_t value = (0b01110); //continuous mode, temperature batched at 1.6Hz
+            static constexpr uint8_t value = (0b010110); //continuous mode, temperature batched at 1.6Hz
         };
 
         static constexpr uint8_t FifoStatus = 0x3a;
