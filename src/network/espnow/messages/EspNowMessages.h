@@ -15,24 +15,28 @@ enum class MessageTag : uint8_t {
 	TrackerState = 0x02,
 };
 
-struct BaseMessage {
-	MessageTag tag;
-};
+#pragma pack(push, 1)
 
-struct PairingMessage : BaseMessage {
-	PairingMessage(uint8_t numOfChildren);
+struct PairingMessage {
+	MessageTag tag;
 	uint8_t numOfChildren;
 };
 
-struct PairingAckMessage : BaseMessage {
-	PairingAckMessage(uint8_t trackerId = 0);
+PairingMessage createPairingMessage(uint8_t numOfChildren);
+
+struct PairingAckMessage {
+	MessageTag tag = MessageTag::PairingAck;
 	uint8_t trackerId;
 };
 
-struct TrackerStateMessage : BaseMessage {
-	TrackerStateMessage(TrackerReport trackerReport);
+struct TrackerStateMessage {
+	MessageTag tag = MessageTag::TrackerState;
 	TrackerReport trackerReport;
 };
+
+#pragma pack(pop)
+
+TrackerStateMessage createTrackerStateMessage(TrackerReport report);
 
 }  // namespace EspNow
 }  // namespace Network

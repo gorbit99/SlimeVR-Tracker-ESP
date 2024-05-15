@@ -40,7 +40,7 @@ namespace SlimeVR {
             addCurrentReceiverAsPeer();
 
             // TODO: set numOfChildren properly
-            EspNow::PairingMessage pairingMessage(1);
+            auto pairingMessage = EspNow::createPairingMessage(1);
             auto status = esp_now_send(
                 configuration.getReceiverMacAddress().data(),
                 reinterpret_cast<uint8_t *>(&pairingMessage),
@@ -58,10 +58,12 @@ namespace SlimeVR {
                 return;
             }
 
+            auto stateMessage = EspNow::createTrackerStateMessage(report);
+
             esp_now_send(
                 configuration.getReceiverMacAddress().data(),
-                reinterpret_cast<uint8_t *>(&report),
-                sizeof(EspNow::TrackerReport)
+                reinterpret_cast<uint8_t *>(&stateMessage),
+                sizeof(stateMessage)
             );
         }
 

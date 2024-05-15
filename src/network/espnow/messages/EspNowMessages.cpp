@@ -1,21 +1,23 @@
 #include "EspNowMessages.h"
 
 namespace SlimeVR {
-    namespace Network {
-        namespace EspNow {
+namespace Network {
+namespace EspNow {
 
-		PairingMessage::PairingMessage(uint8_t numOfChildren)
-			: BaseMessage{MessageTag::Pairing}
-			, numOfChildren{numOfChildren} {}
-
-		PairingAckMessage::PairingAckMessage(uint8_t trackerId)
-			: BaseMessage{MessageTag::PairingAck}
-			, trackerId{trackerId} {}
-
-		TrackerStateMessage::TrackerStateMessage(TrackerReport trackerReport)
-			: BaseMessage{MessageTag::TrackerState}
-			, trackerReport{trackerReport} {}
-
-		}
-    }
+PairingMessage createPairingMessage(uint8_t numOfChildren) {
+	return {
+		MessageTag::Pairing,
+		numOfChildren
+	};
 }
+
+TrackerStateMessage createTrackerStateMessage(TrackerReport report) {
+	return {
+		MessageTag::TrackerState,
+		report
+	};
+}
+
+}  // namespace EspNow
+}  // namespace Network
+}  // namespace SlimeVR

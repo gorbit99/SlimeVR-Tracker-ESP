@@ -189,7 +189,21 @@ namespace SlimeVR
             #endif
 
             #else
-            // TODO: espnow is connected
+
+                if (!configuration.hasReceiverMacAddress()) {
+                    return;
+                }
+
+                for (auto sensor : m_Sensors) {
+                    if (!sensor->hasNewDataToSend()) {
+                        continue;
+                    }
+
+                    if (sensor->isWorking()) {
+                        sensor->sendData();
+                    }
+                }
+
             #endif
         }
 
