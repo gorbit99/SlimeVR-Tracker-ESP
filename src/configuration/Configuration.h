@@ -54,7 +54,12 @@ namespace SlimeVR {
             #ifdef USE_ESPNOW_COMMUNICATION
         public:
             bool hasReceiverMacAddress();
-            const std::array<uint8_t, 6> &getReceiverMacAddress();
+            std::array<uint8_t, 6> &getReceiverMacAddress();
+            void setReceiverMacAddress(std::array<uint8_t, 6> receiverAddress);
+            void forgetReceiverMacAddress();
+            bool hasStartingTrackerIndex();
+            uint8_t getStartingTrackerIndex();
+            void setStartingTrackerIndex(uint8_t startingTrackerIndex);
             #endif
 
         private:
@@ -74,8 +79,11 @@ namespace SlimeVR {
                 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
             };
             bool m_hasReceiverMacAddress = false;
+            uint8_t m_startingTrackerIndex = 255;
             bool loadReceiverMacAddress();
             bool saveReceiverMacAddress(std::array<uint8_t, 6> receiverAddress);
+            bool loadStartingTrackerIndex();
+            bool saveStartingTrackerIndex(uint8_t startingTrackerIndex);
             #endif
 
         };

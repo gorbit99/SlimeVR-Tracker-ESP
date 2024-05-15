@@ -145,13 +145,14 @@ namespace SlimeVR
 
             statusManager.setStatus(SlimeVR::Status::IMU_ERROR, !allIMUGood);
 
-            if (!networkConnection.isConnected()) {
-                return;
-            }
+            #ifndef USE_ESPNOW_COMMUNICATION
+                if (!networkConnection.isConnected()) {
+                    return;
+                }
 
-            #ifndef PACKET_BUNDLING
-                static_assert(false, "PACKET_BUNDLING not set");
-            #endif
+                #ifndef PACKET_BUNDLING
+                    static_assert(false, "PACKET_BUNDLING not set");
+                #endif
             #if PACKET_BUNDLING == PACKET_BUNDLING_BUFFERED
                 uint32_t now = micros();
                 bool shouldSend = false;
@@ -185,6 +186,10 @@ namespace SlimeVR
 
             #if PACKET_BUNDLING != PACKET_BUNDLING_DISABLED
                 networkConnection.endBundle();
+            #endif
+
+            #else
+            // TODO: espnow is connected
             #endif
         }
 

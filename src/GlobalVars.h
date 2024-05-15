@@ -30,8 +30,10 @@
 #include "configuration/Configuration.h"
 #include "network/connection.h"
 #include "network/manager.h"
+#include "network/espnow/EspNowConnection.h"
 #include "sensors/SensorManager.h"
 #include "status/StatusManager.h"
+#include "peripherals/ResetCounter.h"
 
 extern Timer<> globalTimer;
 extern SlimeVR::LEDManager ledManager;
@@ -39,6 +41,11 @@ extern SlimeVR::Status::StatusManager statusManager;
 extern SlimeVR::Configuration::Configuration configuration;
 extern SlimeVR::Sensors::SensorManager sensorManager;
 extern SlimeVR::Network::Manager networkManager;
+#ifndef USE_ESPNOW_COMMUNICATION
 extern SlimeVR::Network::Connection networkConnection;
+#else
+extern SlimeVR::Network::EspNowConnection espnowConnection;
+#endif
+extern SlimeVR::Peripherals::ResetCounter resetCounter;
 
 #endif

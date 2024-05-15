@@ -243,7 +243,11 @@ void BMI160Sensor::motionLoop() {
         getRemappedRotation(&rX, &rY, &rZ);
         getRemappedAcceleration(&aX, &aY, &aZ);
 
+        #ifndef USE_ESPNOW_COMMUNICATION
         networkConnection.sendInspectionRawIMUData(sensorId, rX, rY, rZ, 255, aX, aY, aZ, 255, 0, 0, 0, 255);
+        #else
+        // TODO TrackerReport
+        #endif
     }
     #endif
 
@@ -346,9 +350,17 @@ void BMI160Sensor::motionLoop() {
             lastTemperaturePacketSent = now - (elapsed - sendInterval);
             #if BMI160_TEMPCAL_DEBUG
                 uint32_t isCalibrating = gyroTempCalibrator->isCalibrating() ? 10000 : 0;
+                #ifndef USE_ESPNOW_COMMUNICATION
                 networkConnection.sendTemperature(sensorId, isCalibrating + 10000 + (gyroTempCalibrator->config.samplesTotal * 100) + temperature);
+                #else
+                // TODO TrackerReport
+                #endif
             #else
+                #ifndef USE_ESPNOW_COMMUNICATION
                 networkConnection.sendTemperature(sensorId, temperature);
+                #else
+                // TODO TrackerReport
+                #endif
             #endif
             optimistic_yield(100);
         }

@@ -32,7 +32,8 @@
 #define DIR_TEMPERATURE_CALIBRATIONS "/tempcalibrations"
 
 #ifdef USE_ESPNOW_COMMUNICATION
-#define RECEIVER_MAC_ADDRESS_PATH "receiver_mac_address.bin"
+#define RECEIVER_MAC_ADDRESS_PATH "/receiver_mac_address.bin"
+#define STARTING_TRACKER_INDEX_PATH "/starting_tracker_index.bin"
 #endif
 
 namespace SlimeVR {
@@ -257,8 +258,37 @@ namespace SlimeVR {
             return m_hasReceiverMacAddress;
         }
 
-        const std::array<uint8_t, 6> &Configuration::getReceiverMacAddress() {
+        std::array<uint8_t, 6> &Configuration::getReceiverMacAddress() {
             return m_receiverMacAddress;
+        }
+
+        void Configuration::setReceiverMacAddress(std::array<uint8_t, 6> receiverAddress) {
+            saveReceiverMacAddress(receiverAddress);
+        }
+
+        void Configuration::forgetReceiverMacAddress() {
+            std::array<uint8_t, 6> broadcastAddress = {
+                0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+            };
+            memcpy(
+                m_receiverMacAddress.data(),
+                broadcastAddress.data(),
+                sizeof(uint8_t) * broadcastAddress.size()
+            );
+            LittleFS.remove(RECEIVER_MAC_ADDRESS_PATH);
+            m_hasReceiverMacAddress = false;
+        }
+
+        bool Configuration::hasStartingTrackerIndex() {
+            return m_startingTrackerIndex != 255;
+        }
+
+        uint8_t Configuration::getStartingTrackerIndex() {
+            return m_startingTrackerIndex;
+        }
+
+        void Configuration::setStartingTrackerIndex(uint8_t startingTrackerIndex) {
+            saveStartingTrackerIndex(startingTrackerIndex);
         }
         #endif
 
@@ -346,7 +376,7 @@ namespace SlimeVR {
                 return false;
             }
 
-            m_Logger.info("Found receiver mac address configuration!\n");
+            m_Logger.info("Found receiver mac address configuration!");
 
 			auto f = SlimeVR::Utils::openFile(RECEIVER_MAC_ADDRESS_PATH, "r");
             f.read(m_receiverMacAddress.data(), sizeof(uint8_t) * m_receiverMacAddress.size());
@@ -356,18 +386,46 @@ namespace SlimeVR {
         }
 
         bool Configuration::saveReceiverMacAddress(std::array<uint8_t, 6> receiverAddress) {
-            m_Logger.info("Saving receiver mac address configuration!\n");
+            m_Logger.info("Saving receiver mac address configuration!");
 
             File file = LittleFS.open(RECEIVER_MAC_ADDRESS_PATH, "w");
             file.write((uint8_t*)receiverAddress.data(), sizeof(uint8_t) * receiverAddress.size());
             file.close();
 
-            for (auto i = 0u; i < receiverAddress.size(); i++) {
-                m_receiverMacAddress[i] = receiverAddress[i];
-            }
+            memcpy(
+                m_receiverMacAddress.data(),
+                receiverAddress.data(),
+                sizeof(uint8_t) * receiverAddress.size()
+            );
             m_hasReceiverMacAddress = true;
 
-            m_Logger.info("Saved receiver mac address configuration!\n");
+            m_Logger.info("Saved receiver mac address configuration!");
+            return true;
+        }
+
+        bool Configuration::loadStartingTrackerIndex() {
+            if (!LittleFS.exists(STARTING_TRACKER_INDEX_PATH)) {
+                return false;
+            }
+
+            m_Logger.info("Found receiver starting tracker index configuration!");
+
+			auto f = SlimeVR::Utils::openFile(STARTING_TRACKER_INDEX_PATH, "r");
+            f.read(&m_startingTrackerIndex, sizeof(m_startingTrackerIndex));
+            f.close();
+
+            return true;
+        }
+
+        bool Configuration::saveStartingTrackerIndex(uint8_t startingTrackerIndex) {
+            m_Logger.info("Saving starting tracker index configuration!");
+
+            File file = LittleFS.open(STARTING_TRACKER_INDEX_PATH, "w");
+            file.write(startingTrackerIndex);
+            file.close();
+
+            m_Logger.info("Saved starting tracker index configuration!");
+            m_startingTrackerIndex = startingTrackerIndex;
             return true;
         }
 

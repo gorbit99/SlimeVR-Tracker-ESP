@@ -25,6 +25,10 @@
 #include <i2cscan.h>
 #include "calibration.h"
 
+#ifdef USE_ESPNOW_COMMUNICATION
+#include "network/espnow/messages/TrackerReport.h"
+#endif
+
 SensorStatus Sensor::getSensorState() {
     return isWorking() ? SensorStatus::SENSOR_OK : SensorStatus::SENSOR_ERROR;
 }
@@ -45,6 +49,7 @@ void Sensor::setFusedRotation(Quat r) {
 
 void Sensor::sendData() {
     if (newFusedRotation) {
+#ifndef USE_ESPNOW_COMMUNICATION
         newFusedRotation = false;
         networkConnection.sendRotationData(sensorId, &fusedRotation, DATA_TYPE_NORMAL, calibrationAccuracy);
 
@@ -58,6 +63,19 @@ void Sensor::sendData() {
             networkConnection.sendSensorAcceleration(sensorId, acceleration);
         }
 #endif
+
+#else
+
+    SlimeVR::Network::EspNow::TrackerReport report(
+        configuration.getStartingTrackerIndex() + sensorId,
+        fusedRotation,
+        acceleration,
+        0,
+        0
+    );
+    espnowConnection.sendReport(report);
+
+#endif // USE_ESPNOW_COMMUNICATION
     }
 }
 

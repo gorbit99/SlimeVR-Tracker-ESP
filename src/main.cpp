@@ -30,6 +30,8 @@
 #include "serial/serialcommands.h"
 #include "batterymonitor.h"
 #include "logging/Logger.h"
+#include "network/espnow/EspNowConnection.h"
+#include "peripherals/ResetCounter.h"
 
 Timer<> globalTimer;
 SlimeVR::Logging::Logger logger("SlimeVR");
@@ -38,7 +40,11 @@ SlimeVR::LEDManager ledManager(LED_PIN);
 SlimeVR::Status::StatusManager statusManager;
 SlimeVR::Configuration::Configuration configuration;
 SlimeVR::Network::Manager networkManager;
+SlimeVR::Peripherals::ResetCounter resetCounter;
+
+#ifndef USE_ESPNOW_COMMUNICATION
 SlimeVR::Network::Connection networkConnection;
+#endif
 
 int sensorToCalibrate = -1;
 bool blinking = false;
@@ -68,6 +74,7 @@ void setup()
 
     ledManager.setup();
     configuration.setup();
+    resetCounter.init();
 
     SerialCommands::setUp();
 
@@ -118,6 +125,7 @@ void loop()
     sensorManager.update();
     battery.Loop();
     ledManager.update();
+    resetCounter.update();
 #ifdef TARGET_LOOPTIME_MICROS
     long elapsed = (micros() - loopTime);
     if (elapsed < TARGET_LOOPTIME_MICROS)

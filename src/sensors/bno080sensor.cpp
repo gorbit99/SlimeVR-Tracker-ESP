@@ -152,7 +152,11 @@ void BNO080Sensor::motionLoop()
 
     #if ENABLE_INSPECTION
             {
+                #ifndef USE_ESPNOW_COMMUNICATION
                 networkConnection.sendInspectionCorrectionData(sensorId, quaternion);
+                #else
+                // TODO TrackerReport
+                #endif
             }
     #endif // ENABLE_INSPECTION
 
@@ -184,7 +188,11 @@ void BNO080Sensor::motionLoop()
         if (rr != lastReset)
         {
             lastReset = rr;
+            #ifndef USE_ESPNOW_COMMUNICATION
             networkConnection.sendSensorError(this->sensorId, rr);
+            #else
+            // TODO TrackerReport
+            #endif
         }
 
         m_Logger.error("Sensor %d doesn't respond. Last reset reason:", sensorId, lastReset);
@@ -202,7 +210,11 @@ void BNO080Sensor::sendData()
     if (newFusedRotation)
     {
         newFusedRotation = false;
+        #ifndef USE_ESPNOW_COMMUNICATION
         networkConnection.sendRotationData(sensorId, &fusedRotation, DATA_TYPE_NORMAL, calibrationAccuracy);
+        #else
+        // TODO: TrackerReport
+        #endif
 
 #ifdef DEBUG_SENSOR
         m_Logger.trace("Quaternion: %f, %f, %f, %f", UNPACK_QUATERNION(fusedRotation));
@@ -212,27 +224,43 @@ void BNO080Sensor::sendData()
         if (newAcceleration)
         {
             newAcceleration = false;
+            #ifndef USE_ESPNOW_COMMUNICATION
             networkConnection.sendSensorAcceleration(this->sensorId, this->acceleration);
+            #else
+            // TODO TrackerReport
+            #endif
         }
 #endif
     }
 
 #if !USE_6_AXIS
+        #ifndef USE_ESPNOW_COMMUNICATION
         networkConnection.sendMagnetometerAccuracy(sensorId, magneticAccuracyEstimate);
+        #else
+        // TODO TrackerReport
+        #endif
 #endif
 
 #if USE_6_AXIS && BNO_USE_MAGNETOMETER_CORRECTION
     if (newMagData)
     {
         newMagData = false;
+        #ifndef USE_ESPNOW_COMMUNICATION
         networkConnection.sendRotationData(sensorId, &magQuaternion, DATA_TYPE_CORRECTION, magCalibrationAccuracy);
         networkConnection.sendMagnetometerAccuracy(sensorId, magneticAccuracyEstimate);
+        #else
+        // TODO TrackerReport
+        #endif
     }
 #endif
 
     if (tap != 0)
     {
+        #ifndef USE_ESPNOW_COMMUNICATION
         networkConnection.sendSensorTap(sensorId, tap);
+        #else
+        // TODO TrackerReport
+        #endif
         tap = 0;
     }
 }

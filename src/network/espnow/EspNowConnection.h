@@ -1,6 +1,6 @@
 /*
 	SlimeVR Code is placed under the MIT license
-	Copyright (c) 2023 SlimeVR Contributors
+	Copyright (c) 2024 Gorbit99 & SlimeVR Contributors
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -20,50 +20,36 @@
 	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 	THE SOFTWARE.
 */
-#include "manager.h"
+#ifndef SLIMEVR_ESPNOWCONNECTION_H
+#define SLIMEVR_ESPNOWCONNECTION_H
 
-#include "GlobalVars.h"
+#include "globals.h"
+#include "logging/Logger.h"
+#include "messages/TrackerReport.h"
+
+#ifdef USE_ESPNOW_COMMUNICATION
 
 namespace SlimeVR {
 namespace Network {
 
-#ifndef USE_ESPNOW_COMMUNICATION
+class EspNowConnection {
+public:
+    void init();
+    void sendPairingRequest();
+	void sendReport(EspNow::TrackerReport &report);
 
-void Manager::setup() { ::WiFiNetwork::setUp(); }
+private:
+    void addCurrentReceiverAsPeer();
+	void handleReceivedMessage(uint8_t *peerMac, uint8_t *incomingData, uint8_t dataLength);
 
-void Manager::update() {
-	WiFiNetwork::upkeep();
+    Logging::Logger m_Logger = Logging::Logger("EspNowConnection");
 
-	auto wasConnected = m_IsConnected;
-
-	m_IsConnected = ::WiFiNetwork::isConnected();
-
-	if (!m_IsConnected) {
-		return;
-	}
-
-	if (!wasConnected) {
-		// WiFi was reconnected, rediscover the server and reconnect
-		networkConnection.reset();
-	}
-
-	networkConnection.update();
-}
-
-#else
-
-void Manager::setup() {
-	espnowConnection.init();
-
-	if (resetCounter.getResetCount() == 3) {
-		espnowConnection.sendPairingRequest();
-	}
-}
-
-void Manager::update() {
-}
-
-#endif // USE_ESPNOW_COMMUNICATION
+	friend void receiverCallback(uint8_t *peerMac, uint8_t *incomingData, uint8_t dataLength);
+};
 
 }  // namespace Network
 }  // namespace SlimeVR
+
+#endif
+
+#endif
