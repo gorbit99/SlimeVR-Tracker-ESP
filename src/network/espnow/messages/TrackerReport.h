@@ -17,22 +17,21 @@ struct TrackerReport
     uint8_t battery;
     uint16_t batterymV;
     struct {
-        uint16_t i;
-        uint16_t j;
-        uint16_t k;
-        uint16_t l;
+        int16_t i;
+        int16_t j;
+        int16_t k;
+        int16_t l;
     } rotation;
     struct {
-        uint16_t x;
-        uint16_t y;
-        uint16_t z;
+        int16_t x;
+        int16_t y;
+        int16_t z;
     } acceleration;
 
     TrackerReport(
         uint8_t imuId,
         Quat rotation,
         Vector3 acceleration,
-        float temperature,
         float batteryVoltage
     );
 };

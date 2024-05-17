@@ -39,8 +39,7 @@ namespace SlimeVR {
             configuration.forgetReceiverMacAddress();
             addCurrentReceiverAsPeer();
 
-            // TODO: set numOfChildren properly
-            auto pairingMessage = EspNow::createPairingMessage(1);
+            auto pairingMessage = EspNow::createPairingMessage(MAX_IMU_COUNT);
             auto status = esp_now_send(
                 configuration.getReceiverMacAddress().data(),
                 reinterpret_cast<uint8_t *>(&pairingMessage),
@@ -53,11 +52,17 @@ namespace SlimeVR {
             m_Logger.info("Broadcasted pairing request!");
         }
 
-        void EspNowConnection::sendReport(EspNow::TrackerReport &report) {
+        void EspNowConnection::sendPacket(uint8_t imuId, Quat rotation, Vector3 acceleration) {
             if (!configuration.hasReceiverMacAddress()) {
                 return;
             }
 
+            EspNow::TrackerReport report(
+                imuId,
+                rotation,
+                acceleration,
+                currentBatteryVoltage
+            );
             auto stateMessage = EspNow::createTrackerStateMessage(report);
 
             esp_now_send(
@@ -75,6 +80,10 @@ namespace SlimeVR {
             }
 
             esp_now_add_peer(configuration.getReceiverMacAddress().data(), ESP_NOW_ROLE_CONTROLLER, 1, nullptr, 0);
+        }
+
+        void EspNowConnection::setCurrentBatteryVoltage(float batteryVoltage) {
+            currentBatteryVoltage = batteryVoltage;
         }
 
         void EspNowConnection::handleReceivedMessage(uint8_t *peerMac, uint8_t *incomingData, uint8_t dataLength) {

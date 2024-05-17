@@ -238,15 +238,13 @@ void WiFiNetwork::upkeep() {
         onConnected();
         return;
     } else {
+        #ifndef USE_ESPNOW_COMMUNICATION
         if(millis() - last_rssi_sample >= 2000) {
             last_rssi_sample = millis();
             uint8_t signalStrength = WiFi.RSSI();
-            #ifndef USE_ESPNOW_COMMUNICATION
             networkConnection.sendSignalStrength(signalStrength);
-            #else
-            // TODO: TrackerReport
-            #endif
         }
+        #endif
     }
     return;
 }

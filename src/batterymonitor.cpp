@@ -123,7 +123,7 @@ void BatteryMonitor::Loop()
                 #ifndef USE_ESPNOW_COMMUNICATION
                 networkConnection.sendBatteryLevel(voltage, level);
                 #else
-                // TODO: TrackerReport
+                espnowConnection.setCurrentBatteryVoltage(voltage);
                 #endif
 
                 #ifdef BATTERY_LOW_POWER_VOLTAGE

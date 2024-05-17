@@ -36,13 +36,15 @@ class EspNowConnection {
 public:
     void init();
     void sendPairingRequest();
-	void sendReport(EspNow::TrackerReport &report);
+	void sendPacket(uint8_t imuId, Quat rotation, Vector3 acceleration);
+	void setCurrentBatteryVoltage(float batteryVoltage);
 
 private:
     void addCurrentReceiverAsPeer();
 	void handleReceivedMessage(uint8_t *peerMac, uint8_t *incomingData, uint8_t dataLength);
 
     Logging::Logger m_Logger = Logging::Logger("EspNowConnection");
+	float currentBatteryVoltage = 0;
 
 	friend void receiverCallback(uint8_t *peerMac, uint8_t *incomingData, uint8_t dataLength);
 };

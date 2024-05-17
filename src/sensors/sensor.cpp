@@ -48,8 +48,8 @@ void Sensor::setFusedRotation(Quat r) {
 }
 
 void Sensor::sendData() {
-    if (newFusedRotation) {
 #ifndef USE_ESPNOW_COMMUNICATION
+    if (newFusedRotation) {
         newFusedRotation = false;
         networkConnection.sendRotationData(sensorId, &fusedRotation, DATA_TYPE_NORMAL, calibrationAccuracy);
 
@@ -64,19 +64,21 @@ void Sensor::sendData() {
         }
 #endif
 
+    }
 #else
 
-    SlimeVR::Network::EspNow::TrackerReport report(
-        configuration.getStartingTrackerIndex() + sensorId,
-        fusedRotation,
-        acceleration,
-        0,
-        0
-    );
-    espnowConnection.sendReport(report);
+	if (newFusedRotation || newAcceleration) {
+		newFusedRotation = false;
+		newAcceleration = false;
+
+        espnowConnection.sendPacket(
+			configuration.getStartingTrackerIndex() + sensorId,
+            fusedRotation,
+            acceleration
+        );
+	}
 
 #endif // USE_ESPNOW_COMMUNICATION
-    }
 }
 
 void Sensor::printTemperatureCalibrationUnsupported() {
