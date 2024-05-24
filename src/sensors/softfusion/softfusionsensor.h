@@ -70,6 +70,11 @@ class SoftFusionSensor : public Sensor
         return true;
     }
 
+    void deinitialize()
+    {
+        m_sensor.deinitialize();
+    }
+
 
     void sendTempIfNeeded()
     {
