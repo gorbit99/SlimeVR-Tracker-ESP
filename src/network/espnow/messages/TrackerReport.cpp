@@ -1,8 +1,14 @@
 #include "TrackerReport.h"
 
 #include <Arduino.h>
+#ifdef ESP8266
 #include <ESP8266WiFi.h>
 #include <espnow.h>
+#endif
+#ifdef ESP32
+#include <WiFi.h>
+#include <esp_now.h>
+#endif
 #include <limits>
 
 namespace SlimeVR {

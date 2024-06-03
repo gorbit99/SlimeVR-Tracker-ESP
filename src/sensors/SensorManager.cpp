@@ -194,7 +194,7 @@ namespace SlimeVR
                     return;
                 }
 
-                for (auto sensor : m_Sensors) {
+                for (auto &sensor : m_Sensors) {
                     if (!sensor->hasNewDataToSend()) {
                         continue;
                     }

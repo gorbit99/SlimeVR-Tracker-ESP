@@ -73,6 +73,7 @@ class SoftFusionSensor : public Sensor
 
     void sendTempIfNeeded()
     {
+        #ifndef USE_ESPNOW_COMMUNICATION
         uint32_t now = micros();
         constexpr float maxSendRateHz = 2.0f;
         constexpr uint32_t sendInterval = 1.0f/maxSendRateHz * 1e6;
@@ -82,6 +83,7 @@ class SoftFusionSensor : public Sensor
             m_lastTemperaturePacketSent = now - (elapsed - sendInterval);
             networkConnection.sendTemperature(sensorId, temperature);
         }
+        #endif
     }
 
     void recalcFusion()

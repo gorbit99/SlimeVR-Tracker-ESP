@@ -114,6 +114,11 @@ void setup()
     sensorManager.postSetup();
 
     loopTime = micros();
+
+    pinMode(9, INPUT);
+    if (digitalRead(9) == LOW) {
+        espnowConnection.sendPairingRequest();
+    }
 }
 
 void loop()

@@ -27,6 +27,10 @@
 #include "logging/Logger.h"
 #include "messages/TrackerReport.h"
 
+#ifdef ESP32
+#include <esp_now.h>
+#endif
+
 #ifdef USE_ESPNOW_COMMUNICATION
 
 namespace SlimeVR {
@@ -41,12 +45,18 @@ public:
 
 private:
     void addCurrentReceiverAsPeer();
-	void handleReceivedMessage(uint8_t *peerMac, uint8_t *incomingData, uint8_t dataLength);
+	void handleReceivedMessage(uint8_t *peerMac, const uint8_t *incomingData, uint8_t dataLength);
 
     Logging::Logger m_Logger = Logging::Logger("EspNowConnection");
 	float currentBatteryVoltage = 0;
 
+	#ifdef ESP8266
 	friend void receiverCallback(uint8_t *peerMac, uint8_t *incomingData, uint8_t dataLength);
+	#endif
+	
+	#ifdef ESP32
+	friend void receiverCallback(const esp_now_recv_info_t *espnowInfo, const uint8_t *incomingData, int dataLength);
+	#endif
 };
 
 }  // namespace Network

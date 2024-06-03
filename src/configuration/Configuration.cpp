@@ -93,6 +93,7 @@ namespace SlimeVR {
             if (loadReceiverMacAddress()) {
                 m_hasReceiverMacAddress = true;
             }
+            loadStartingTrackerIndex();
             #endif
 
             m_Loaded = true;
@@ -267,6 +268,9 @@ namespace SlimeVR {
         }
 
         void Configuration::forgetReceiverMacAddress() {
+            if (!m_hasReceiverMacAddress) {
+                return;
+            }
             std::array<uint8_t, 6> broadcastAddress = {
                 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
             };
@@ -289,6 +293,7 @@ namespace SlimeVR {
 
         void Configuration::setStartingTrackerIndex(uint8_t startingTrackerIndex) {
             saveStartingTrackerIndex(startingTrackerIndex);
+            m_startingTrackerIndex = startingTrackerIndex;
         }
         #endif
 
