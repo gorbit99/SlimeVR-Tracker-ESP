@@ -58,10 +58,10 @@ void setup()
     Serial.begin(serialBaudRate);
     globalTimer = timer_create_default();
 
-#ifdef ESP32C3
-    // Wait for the Computer to be able to connect.
-    delay(2000);
-#endif
+// #ifdef ESP32C3
+//     // Wait for the Computer to be able to connect.
+//     delay(2000);
+// #endif
 
     Serial.println();
     Serial.println();
