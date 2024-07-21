@@ -373,7 +373,7 @@ struct BMI270
     template <typename AccelCall, typename GyroCall>
     void bulkRead(AccelCall &&processAccelSample, GyroCall &&processGyroSample) {
         const auto fifo_bytes = i2c.readReg16(Regs::FifoCount);
-        
+
         const auto bytes_to_read = std::min(static_cast<size_t>(read_buffer.size()),
             static_cast<size_t>(fifo_bytes));
         i2c.readBytes(Regs::FifoData, bytes_to_read, read_buffer.data());

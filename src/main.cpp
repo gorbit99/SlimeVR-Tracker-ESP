@@ -58,9 +58,9 @@ void setup()
     delay(2000);
 #endif
 
-    Serial.println();
-    Serial.println();
-    Serial.println();
+    // Serial.println();
+    // Serial.println();
+    // Serial.println();
 
     logger.info("SlimeVR v" FIRMWARE_VERSION " starting up...");
 
@@ -98,11 +98,11 @@ void setup()
 
     sensorManager.setup();
 
-    networkManager.setup();
-    OTA::otaSetup(otaPassword);
-    battery.Setup();
+    // networkManager.setup();
+    // OTA::otaSetup(otaPassword);
+    // battery.Setup();
 
-    statusManager.setStatus(SlimeVR::Status::LOADING, false);
+    // statusManager.setStatus(SlimeVR::Status::LOADING, false);
 
     sensorManager.postSetup();
 
@@ -111,36 +111,11 @@ void setup()
 
 void loop()
 {
-    globalTimer.tick();
+    // globalTimer.tick();
     SerialCommands::update();
-    OTA::otaUpdate();
-    networkManager.update();
+    // OTA::otaUpdate();
+    // networkManager.update();
     sensorManager.update();
-    battery.Loop();
+    // battery.Loop();
     ledManager.update();
-#ifdef TARGET_LOOPTIME_MICROS
-    long elapsed = (micros() - loopTime);
-    if (elapsed < TARGET_LOOPTIME_MICROS)
-    {
-        long sleepus = TARGET_LOOPTIME_MICROS - elapsed - 100;//µs to sleep
-        long sleepms = sleepus / 1000;//ms to sleep
-        if(sleepms > 0) // if >= 1 ms
-        {
-            delay(sleepms); // sleep ms = save power
-            sleepus -= sleepms * 1000;
-        }
-        if (sleepus > 100)
-        {
-            delayMicroseconds(sleepus);
-        }
-    }
-    loopTime = micros();
-#endif
-    #if defined(PRINT_STATE_EVERY_MS) && PRINT_STATE_EVERY_MS > 0
-        unsigned long now = millis();
-        if(lastStatePrint + PRINT_STATE_EVERY_MS < now) {
-            lastStatePrint = now;
-            SerialCommands::printState();
-        }
-    #endif
 }

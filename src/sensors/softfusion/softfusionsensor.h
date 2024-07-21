@@ -103,8 +103,10 @@ class SoftFusionSensor : public Sensor
         accelData[0] = (m_calibration.A_Ainv[0][0] * tmp[0] + m_calibration.A_Ainv[0][1] * tmp[1] + m_calibration.A_Ainv[0][2] * tmp[2]) * AScale;
         accelData[1] = (m_calibration.A_Ainv[1][0] * tmp[0] + m_calibration.A_Ainv[1][1] * tmp[1] + m_calibration.A_Ainv[1][2] * tmp[2]) * AScale;
         accelData[2] = (m_calibration.A_Ainv[2][0] * tmp[0] + m_calibration.A_Ainv[2][1] * tmp[1] + m_calibration.A_Ainv[2][2] * tmp[2]) * AScale;
+        
+        Serial.printf("A: %f %f %f\n", accelData[0], accelData[1], accelData[2]);
 
-        m_fusion.updateAcc(accelData, m_calibration.A_Ts);
+        // m_fusion.updateAcc(accelData, m_calibration.A_Ts);
     }
 
     void processGyroSample(const int16_t xyz[3], const sensor_real_t timeDelta)
@@ -113,7 +115,9 @@ class SoftFusionSensor : public Sensor
             static_cast<sensor_real_t>(GScale * (static_cast<sensor_real_t>(xyz[0]) - m_calibration.G_off[0])),
             static_cast<sensor_real_t>(GScale * (static_cast<sensor_real_t>(xyz[1]) - m_calibration.G_off[1])),
             static_cast<sensor_real_t>(GScale * (static_cast<sensor_real_t>(xyz[2]) - m_calibration.G_off[2]))};
-        m_fusion.updateGyro(scaledData, m_calibration.G_Ts);
+
+        Serial.printf("G: %f %f %f\n", scaledData[0], scaledData[1], scaledData[2]);
+        // m_fusion.updateGyro(scaledData, m_calibration.G_Ts);
     }
 
     void eatSamplesForSeconds(const uint32_t seconds) {
