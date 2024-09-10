@@ -24,21 +24,12 @@
 #ifndef GLOBALVARS_H
 #define GLOBALVARS_H
 
-#include <arduino-timer.h>
+#define sensor_real_t float
+#define serialBaudRate 460800
+#define I2C_SPEED 400000
 
-#include "LEDManager.h"
-#include "configuration/Configuration.h"
-#include "network/connection.h"
-#include "network/manager.h"
 #include "sensors/SensorManager.h"
-#include "status/StatusManager.h"
 
-extern Timer<> globalTimer;
-extern SlimeVR::LEDManager ledManager;
-extern SlimeVR::Status::StatusManager statusManager;
-extern SlimeVR::Configuration::Configuration configuration;
 extern SlimeVR::Sensors::SensorManager sensorManager;
-extern SlimeVR::Network::Manager networkManager;
-extern SlimeVR::Network::Connection networkConnection;
 
 #endif

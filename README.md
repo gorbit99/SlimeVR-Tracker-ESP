@@ -33,7 +33,6 @@ The following IMUs and their corresponding `IMU` values are supported by the fir
   * Support for the following magnetometers is implemented (even more experimental): HMC5883L, QMC5883L.
 * ICM-20948 (IMU_ICM20948)
   * Using fusion in internal DMP for 6Dof or 9DoF, 9DoF mode requires good magnetic environment.
-  * Comment out `USE_6DOF` in `debug.h` for 9DoF mode.
   * Experimental support!
 * BMI270 (IMU_BMI270), ICM-42688 (IMU_ICM42688), LSM6DS3TR-C (IMU_LSM6DS3TRC), LSM6DSV (IMU_LSM6DSV), LSM6DSO (IMU_LSM6DSO), LSM6DSR (IMU_LSM6DSR), MPU-6050 (IMU_MPU6050_SF)
   * Using common code: SoftFusionSensor for sensor fusion of Gyroscope and Accelerometer.
@@ -65,7 +64,7 @@ Firmware can work with both ESP8266 and ESP32. Please edit `defines.h` and set y
     > The LED will be lit continuously. If you have the tracker connected via USB and open the serial console, you will see text prompts in addition to the LEDs. You can only calibrate 1 IMU at a time.
 
     Flip it back up while the LED is still solid. Wait a few seconds, do not touch the device.
-    
+
   - **Step 1: It will flash 3 times when gyroscope calibration begins.**
 
     > If done incorrectly, this step is the most likely source of constant drift.
@@ -80,9 +79,9 @@ Firmware can work with both ESP8266 and ESP32. Please edit `defines.h` and set y
     > If you are unable to keep it on a flat surface without touching, press the device against a wall, it does not have to be absolutely perfect.
 
     **There will be two very short blinks when each position is recorded.**
-    
+
     Rotate the device 90 or 180 degrees in any direction. It should be on a different side each time. Continue to rotate until all 6 sides have been recorded.
-    
+
     The last position has a long flash when recorded, indicating exit from calibration mode.
 
   #### Additional info for BMI160

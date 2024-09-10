@@ -1,121 +1,71 @@
 /*
-    SlimeVR Code is placed under the MIT license
-    Copyright (c) 2021 Eiren Rain & SlimeVR contributors
+	SlimeVR Code is placed under the MIT license
+	Copyright (c) 2021 Eiren Rain & SlimeVR contributors
 
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
+	Permission is hereby granted, free of charge, to any person obtaining a copy
+	of this software and associated documentation files (the "Software"), to deal
+	in the Software without restriction, including without limitation the rights
+	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+	copies of the Software, and to permit persons to whom the Software is
+	furnished to do so, subject to the following conditions:
 
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
+	The above copyright notice and this permission notice shall be included in
+	all copies or substantial portions of the Software.
 
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE.
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+	THE SOFTWARE.
 */
 
+#include <i2cscan.h>
+
+#include "GlobalVars.h"
 #include "Wire.h"
 #include "ota.h"
-#include "GlobalVars.h"
-#include "globals.h"
-#include "credentials.h"
-#include <i2cscan.h>
+#include "sensors/SensorManager.h"
 #include "serial/serialcommands.h"
-#include "batterymonitor.h"
-#include "logging/Logger.h"
 
-Timer<> globalTimer;
-SlimeVR::Logging::Logger logger("SlimeVR");
 SlimeVR::Sensors::SensorManager sensorManager;
-SlimeVR::LEDManager ledManager(LED_PIN);
-SlimeVR::Status::StatusManager statusManager;
-SlimeVR::Configuration::Configuration configuration;
-SlimeVR::Network::Manager networkManager;
-SlimeVR::Network::Connection networkConnection;
 
 int sensorToCalibrate = -1;
 bool blinking = false;
 unsigned long blinkStart = 0;
-unsigned long loopTime = 0;
 unsigned long lastStatePrint = 0;
 bool secondImuActive = false;
-BatteryMonitor battery;
 
-void setup()
-{
-    Serial.begin(serialBaudRate);
-    globalTimer = timer_create_default();
+void setup() {
+	Serial.begin(serialBaudRate);
 
 #ifdef ESP32C3
-    // Wait for the Computer to be able to connect.
-    delay(2000);
+	// Wait for the Computer to be able to connect.
+	delay(2000);
 #endif
+	printf("Sensor;X;Y;Z\n");
 
-    // Serial.println();
-    // Serial.println();
-    // Serial.println();
+	SerialCommands::setUp();
 
-    logger.info("SlimeVR v" FIRMWARE_VERSION " starting up...");
+	I2CSCAN::clearBus(PIN_IMU_SDA, PIN_IMU_SCL);
 
-    statusManager.setStatus(SlimeVR::Status::LOADING, true);
+	// For some unknown reason the I2C seem to be open on ESP32-C3 by default. Let's
+	// just close it before opening it again. (The ESP32-C3 only has 1 I2C.)
+	Wire.end();
 
-    ledManager.setup();
-    configuration.setup();
+	// using `static_cast` here seems to be better, because there are 2 similar function
+	// signatures
+	Wire.begin(static_cast<int>(PIN_IMU_SDA), static_cast<int>(PIN_IMU_SCL));
 
-    SerialCommands::setUp();
+	Wire.setTimeOut(150);
+	Wire.setClock(I2C_SPEED);
 
-    I2CSCAN::clearBus(PIN_IMU_SDA, PIN_IMU_SCL); // Make sure the bus isn't stuck when resetting ESP without powering it down
-    // Fixes I2C issues for certain IMUs. Previously this feature was enabled for selected IMUs, now it's enabled for all.
-    // If some IMU turned out to be broken by this, check needs to be re-added.
+	// Wait for IMU to boot
+	delay(500);
 
-    // join I2C bus
-
-#if ESP32
-    // For some unknown reason the I2C seem to be open on ESP32-C3 by default. Let's just close it before opening it again. (The ESP32-C3 only has 1 I2C.)
-    Wire.end();
-#endif
-
-    // using `static_cast` here seems to be better, because there are 2 similar function signatures
-    Wire.begin(static_cast<int>(PIN_IMU_SDA), static_cast<int>(PIN_IMU_SCL));
-
-#ifdef ESP8266
-    Wire.setClockStretchLimit(150000L); // Default stretch limit 150mS
-#endif
-#ifdef ESP32 // Counterpart on ESP32 to ClockStretchLimit
-    Wire.setTimeOut(150);
-#endif
-    Wire.setClock(I2C_SPEED);
-
-    // Wait for IMU to boot
-    delay(500);
-
-    sensorManager.setup();
-
-    // networkManager.setup();
-    // OTA::otaSetup(otaPassword);
-    // battery.Setup();
-
-    // statusManager.setStatus(SlimeVR::Status::LOADING, false);
-
-    sensorManager.postSetup();
-
-    loopTime = micros();
+	sensorManager.setup();
+	sensorManager.postSetup();
 }
 
-void loop()
-{
-    // globalTimer.tick();
-    SerialCommands::update();
-    // OTA::otaUpdate();
-    // networkManager.update();
-    sensorManager.update();
-    // battery.Loop();
-    ledManager.update();
-}
+void loop() { SlimeVR::Sensors::SensorManager::sensor->motionLoop(); }
