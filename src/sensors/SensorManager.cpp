@@ -23,6 +23,7 @@
 
 #include "SensorManager.h"
 
+#include "bno080sensor.h"
 #include "sensoraddresses.h"
 #include "softfusion/drivers/bmi270.h"
 #include "softfusion/drivers/icm42688.h"

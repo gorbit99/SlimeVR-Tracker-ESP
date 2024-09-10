@@ -129,6 +129,8 @@ public:
 
 		m_status = SensorStatus::SENSOR_OK;
 		working = true;
+
+		printf("Sensor;X;Y;Z\n");
 	}
 
 	void startCalibration(int calibrationType) override final {}

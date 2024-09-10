@@ -44,8 +44,6 @@ void setup() {
 	// Wait for the Computer to be able to connect.
 	delay(2000);
 #endif
-	printf("Sensor;X;Y;Z\n");
-
 	SerialCommands::setUp();
 
 	I2CSCAN::clearBus(PIN_IMU_SDA, PIN_IMU_SCL);

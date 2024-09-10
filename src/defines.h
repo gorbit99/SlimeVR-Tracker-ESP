@@ -26,7 +26,7 @@
 // ================================================
 
 // Set parameters of IMU and board used
-#define IMU IMU_LSM6DSV
+#define IMU IMU_BNO080
 #define BOARD BOARD_CUSTOM
 #define IMU_ROTATION DEG_90
 
