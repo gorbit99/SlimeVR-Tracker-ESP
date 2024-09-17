@@ -368,15 +368,15 @@ public:
 		// send new fusion values when time is up
 		now = micros();
 		float maxSendRateHz = 0;
-		#if defined(ESP8266)
-			if(sensorManager.getActiveSensorCount() > 1) {
-				maxSendRateHz = 100.0f;
-			} else {
-				maxSendRateHz = 120.0f;
-			}
-		#else
+#if defined(ESP8266)
+		if (sensorManager.getActiveSensorCount() > 1) {
+			maxSendRateHz = 100.0f;
+		} else {
 			maxSendRateHz = 120.0f;
-		#endif
+		}
+#else
+		maxSendRateHz = 120.0f;
+#endif
 		uint32_t sendInterval = 1.0f / maxSendRateHz * 1e6;
 		elapsed = now - m_lastRotationPacketSent;
 		if (elapsed >= sendInterval) {
@@ -857,6 +857,8 @@ public:
 	uint32_t m_lastRotationPacketSent = 0;
 	uint32_t m_lastTemperaturePacketSent = 0;
 	uint32_t m_lastTemperatureSampling = 0;
+
+	void deinitialize() override { m_sensor.deinitialize(); }
 };
 
 }  // namespace SlimeVR::Sensors

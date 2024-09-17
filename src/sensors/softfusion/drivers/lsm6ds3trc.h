@@ -54,8 +54,9 @@ struct LSM6DS3TRC {
 
 	// Parameters are for LSM6DS3, not LSM6DS3TR-C, because no one uses it
 
-	// Temperature stability constant - how many degrees of temperature for the bias to change by 0.01
-	// Though I don't know if it should be 0.1 or 0.01, this is a guess and seems to work better than 0.1
+	// Temperature stability constant - how many degrees of temperature for the bias to
+	// change by 0.01 Though I don't know if it should be 0.1 or 0.01, this is a guess
+	// and seems to work better than 0.1
 	static constexpr float TemperatureZROChange = 0.2f;
 
 	// VQF parameters
@@ -171,6 +172,8 @@ struct LSM6DS3TRC {
 			processTemperatureSample(read_buffer[i + 9], AccTs);
 		}
 	}
+
+	void deinitialize() { i2c.writeReg(Regs::Ctrl3C::reg, Regs::Ctrl3C::valueSwReset); }
 };
 
 }  // namespace SlimeVR::Sensors::SoftFusion::Drivers
