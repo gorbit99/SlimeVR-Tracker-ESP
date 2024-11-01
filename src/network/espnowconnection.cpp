@@ -1,6 +1,5 @@
 #include "espnowconnection.h"
 #include <algorithm>
-#include <esp_wifi.h>
 
 #include "../GlobalVars.h"
 #include "espnowmessages.h"
@@ -29,11 +28,9 @@ void onReceive(const esp_now_recv_info_t *espnowInfo,
 #endif
 
 void ESPNowConnection::setup() {
-	esp_wifi_set_promiscuous(false);
-	esp_wifi_stop();
     WiFi.mode(WIFI_STA);
-    WiFi.setChannel(espnowWifiChannel);
-    WiFi.begin();
+    // WiFi.setChannel(espnowWifiChannel);
+    // WiFi.begin();
 
     if (esp_now_init() != ESP_OK) {
         m_Logger.fatal("Couldn't initialize ESPNow!");
