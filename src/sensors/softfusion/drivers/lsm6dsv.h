@@ -44,10 +44,12 @@ struct LSM6DSV : LSM6DSOutputHandler<I2CImpl> {
 	static constexpr float GyrFreq = 480;
 	static constexpr float AccFreq = 120;
 	static constexpr float MagFreq = 120;
+	static constexpr float TempFreq = 60;
 
 	static constexpr float GyrTs = 1.0 / GyrFreq;
 	static constexpr float AccTs = 1.0 / AccFreq;
 	static constexpr float MagTs = 1.0 / MagFreq;
+	static constexpr float TempTs = 1.0 / TempFreq;
 
 	static constexpr float GyroSensitivity = 1000 / 35.0f;
 	static constexpr float AccelSensitivity = 1000 / 0.244f;
@@ -122,14 +124,21 @@ struct LSM6DSV : LSM6DSOutputHandler<I2CImpl> {
 		return LSM6DSOutputHandler<I2CImpl>::template getDirectTemp<Regs>();
 	}
 
-	template <typename AccelCall, typename GyroCall>
-	void bulkRead(AccelCall&& processAccelSample, GyroCall&& processGyroSample) {
-		LSM6DSOutputHandler<I2CImpl>::template bulkRead<AccelCall, GyroCall, Regs>(
-			processAccelSample,
-			processGyroSample,
-			GyrTs,
-			AccTs
-		);
+	template <typename AccelCall, typename GyroCall, typename TemperatureCall>
+	void bulkRead(
+		AccelCall&& processAccelSample,
+		GyroCall&& processGyroSample,
+		TemperatureCall&& processTemperatureSample
+	) {
+		LSM6DSOutputHandler<I2CImpl>::
+			template bulkRead<AccelCall, GyroCall, TemperatureCall, Regs>(
+				processAccelSample,
+				processGyroSample,
+				processTemperatureSample,
+				GyrTs,
+				AccTs,
+				TempTs
+			);
 	}
 };
 

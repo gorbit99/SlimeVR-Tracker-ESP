@@ -57,12 +57,18 @@ struct LSM6DSOutputHandler {
 
 	static constexpr size_t FullFifoEntrySize = sizeof(FifoEntryAligned) + 1;
 
-	template <typename AccelCall, typename GyroCall, typename Regs>
+	template <
+		typename AccelCall,
+		typename GyroCall,
+		typename TemperatureCall,
+		typename Regs>
 	void bulkRead(
 		AccelCall& processAccelSample,
 		GyroCall& processGyroSample,
+		TemperatureCall& processTemperatureSample,
 		float GyrTs,
-		float AccTs
+		float AccTs,
+		float TempTs
 	) {
 		constexpr auto FIFO_SAMPLES_MASK = 0x3ff;
 		constexpr auto FIFO_OVERRUN_LATCHED_MASK = 0x800;
@@ -98,6 +104,9 @@ struct LSM6DSOutputHandler {
 					break;
 				case 0x02:  // Accel NC
 					processAccelSample(entry.xyz, AccTs);
+					break;
+				case 0x03:  // Temperature
+					processTemperatureSample(entry.xyz[0], TempTs);
 					break;
 			}
 		}

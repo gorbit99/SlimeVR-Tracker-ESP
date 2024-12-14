@@ -68,6 +68,7 @@ struct SoftFusionSensorConfig {
 	float A_Ts;
 	float G_Ts;
 	float M_Ts;
+	float T_Ts;
 
 	// gyro sensitivity multiplier
 	float G_Sens[3];

@@ -42,6 +42,7 @@ enum class ImuID {
 	LSM6DSV,
 	LSM6DSO,
 	LSM6DSR,
+	ICM45686,
 	Empty = 255
 };
 
@@ -61,6 +62,7 @@ enum class ImuID {
 #define IMU_LSM6DSV SoftFusionLSM6DSV
 #define IMU_LSM6DSO SoftFusionLSM6DSO
 #define IMU_LSM6DSR SoftFusionLSM6DSR
+#define IMU_ICM45686 SoftFusionICM45686
 #define IMU_MPU6050_SF SoftFusionMPU6050
 
 #define IMU_DEV_RESERVED 250  // Reserved, should not be used in any release firmware
@@ -83,9 +85,9 @@ enum class ImuID {
 #define BOARD_MOCOPI 15  // Used by mocopi/moslime
 #define BOARD_WEMOSWROOM02 16
 #define BOARD_XIAO_ESP32C3 17
-#define BOARD_HARITORA 18 // Used by Haritora/SlimeTora
+#define BOARD_HARITORA 18  // Used by Haritora/SlimeTora
 #define BOARD_ES32C6DEVKITC1 19
-#define BOARD_DEV_RESERVED 250 // Reserved, should not be used in any release firmware
+#define BOARD_DEV_RESERVED 250  // Reserved, should not be used in any release firmware
 
 #define BAT_EXTERNAL 1
 #define BAT_INTERNAL 2
