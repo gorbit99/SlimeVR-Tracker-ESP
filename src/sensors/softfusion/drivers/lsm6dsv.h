@@ -95,7 +95,7 @@ struct LSM6DSV : LSM6DSOutputHandler<I2CImpl> {
 		};
 		struct FifoCtrl4Mode {
 			static constexpr uint8_t reg = 0x0a;
-			static constexpr uint8_t value = (0b110110);  // continuous mode
+			static constexpr uint8_t value = (0b110110);  // continuous mode,
 		};
 
 		static constexpr uint8_t FifoStatus = 0x1b;

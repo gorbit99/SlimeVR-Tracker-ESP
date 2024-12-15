@@ -37,15 +37,6 @@ struct LSM6DSOutputHandler {
 
 	I2CImpl i2c;
 	SlimeVR::Logging::Logger& logger;
-
-	template <typename Regs>
-	float getDirectTemp() const {
-		const auto value = static_cast<int16_t>(i2c.readReg16(Regs::OutTemp));
-		float result = ((float)value / 256.0f) + 25.0f;
-
-		return result;
-	}
-
 #pragma pack(push, 1)
 	struct FifoEntryAligned {
 		union {
