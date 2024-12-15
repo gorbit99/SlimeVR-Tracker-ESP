@@ -120,10 +120,6 @@ struct LSM6DSV : LSM6DSOutputHandler<I2CImpl> {
 		return true;
 	}
 
-	float getDirectTemp() const {
-		return LSM6DSOutputHandler<I2CImpl>::template getDirectTemp<Regs>();
-	}
-
 	template <typename AccelCall, typename GyroCall, typename TemperatureCall>
 	void bulkRead(
 		AccelCall&& processAccelSample,
