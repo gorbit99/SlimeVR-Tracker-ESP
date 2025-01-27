@@ -25,6 +25,14 @@ struct SensorRestDetectionParams : RestDetectionParams {
 
 class SensorFusionRestDetect : public SensorFusion {
 public:
+
+	float getBiasEstimate(float out[3]) {
+        return vqf.getBiasEstimate(out);
+    }
+
+	const VQFParams& getVQFParams() const { return vqf.getParams(); }
+	void updateBiasForgettingTime(float time) { vqf.updateBiasForgettingTime(time); }
+
 	SensorFusionRestDetect(float gyrTs, float accTs = -1.0, float magTs = -1.0)
 		: SensorFusion(gyrTs, accTs, magTs)
 #if !SENSOR_FUSION_WITH_RESTDETECT

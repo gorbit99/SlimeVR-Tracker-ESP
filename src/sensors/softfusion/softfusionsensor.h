@@ -127,15 +127,12 @@ class SoftFusionSensor : public Sensor {
 		temperatureSum = 0;
 		lastTemperatureAverage = averageTemperature;
 
-		if (DefinedTemperatureZROChange
-#if USE_NONBLOCKING_CALIBRATION
-			|| m_calibration.gyroPointsCalibrated == 2
-#endif
-		) {
-			m_fusion.updateBiasForgettingTime(
-				zroChangeOverTemperature / temperatureChangeRate
-			);
-		}
+		if (temperatureChangeRate > 0.1f) { // °C/sec threshold
+        	float aggressiveForgettingTime = m_fusion.getVQFParams().biasForgettingTime / 2.0f;
+        	m_fusion.updateBiasForgettingTime(aggressiveForgettingTime);
+   	 	} else {
+        	m_fusion.updateBiasForgettingTime(m_fusion.getVQFParams().biasForgettingTime);
+    	}
 	}
 
 	void sendTempIfNeeded() {
@@ -234,6 +231,14 @@ class SoftFusionSensor : public Sensor {
 	}
 
 	void processGyroSample(const RawSensorT xyz[3], const sensor_real_t timeDelta) {
+    	float currentTemp = lastReadTemperature;
+    	float tempDelta = currentTemp - referenceTemp;
+
+		float biasComp[3];
+		for (int i = 0; i < 3; i++) {
+			biasComp[i] = m_calibration.G_off1[i] + tempBiasModel.coeff[i] * tempDelta;
+		}
+
 #if !USE_NONBLOCKING_CALIBRATION
 		const sensor_real_t scaledData[] = {
 			static_cast<sensor_real_t>(
@@ -249,13 +254,13 @@ class SoftFusionSensor : public Sensor {
 #else
 		const sensor_real_t scaledData[] = {
 			static_cast<sensor_real_t>(
-				GScale * (static_cast<sensor_real_t>(xyz[0]) - m_calibration.G_off1[0])
+				GScale * (static_cast<sensor_real_t>(xyz[0]) - biasComp[0])
 			),
 			static_cast<sensor_real_t>(
-				GScale * (static_cast<sensor_real_t>(xyz[1]) - m_calibration.G_off1[1])
+				GScale * (static_cast<sensor_real_t>(xyz[1]) - biasComp[1])
 			),
 			static_cast<sensor_real_t>(
-				GScale * (static_cast<sensor_real_t>(xyz[2]) - m_calibration.G_off1[2])
+				GScale * (static_cast<sensor_real_t>(xyz[2]) - biasComp[2])
 			)
 		};
 #endif
@@ -323,6 +328,42 @@ class SoftFusionSensor : public Sensor {
 		}
 		return std::make_tuple(accel, gyro, temperature);
 	}
+
+private:
+    struct TemperatureBiasModel {
+        float sumTemp = 0.0f;
+        float sumBias[3] = {0};
+        float sumTempBias[3] = {0};
+        float sumTempSq = 0.0f;
+        int count = 0;
+        float coeff[3] = {0}; // Bias change per degree per axis
+    } tempBiasModel;
+    
+    float referenceTemp = 25.0f; // Initial reference temperature
+
+    void updateTemperatureModel(float temp, const float bias[3]) {
+        tempBiasModel.sumTemp += temp;
+        tempBiasModel.sumTempSq += temp * temp;
+        for (int i = 0; i < 3; i++) {
+            tempBiasModel.sumBias[i] += bias[i];
+            tempBiasModel.sumTempBias[i] += temp * bias[i];
+        }
+        tempBiasModel.count++;
+
+        if (tempBiasModel.count > 10) { // Update model periodically
+            float denom = tempBiasModel.count * tempBiasModel.sumTempSq - 
+                        tempBiasModel.sumTemp * tempBiasModel.sumTemp;
+            if (fabs(denom) > 1e-6) {
+                for (int i = 0; i < 3; i++) {
+                    tempBiasModel.coeff[i] = 
+                        (tempBiasModel.count * tempBiasModel.sumTempBias[i] - 
+                        tempBiasModel.sumTemp * tempBiasModel.sumBias[i]) / denom;
+                }
+            }
+            // Reset accumulators
+            tempBiasModel = TemperatureBiasModel();
+        }
+    }
 
 public:
 	static constexpr auto TypeID = imu::Type;
@@ -407,6 +448,12 @@ public:
 			setAcceleration(m_fusion.getLinearAccVec());
 			optimistic_yield(100);
 		}
+
+		if (m_fusion.getRestDetected()) {
+        	float currentBias[3];
+        	m_fusion.getBiasEstimate(currentBias);
+        	updateTemperatureModel(lastReadTemperature, currentBias);
+    	}
 	}
 
 	void motionSetup() override final {
