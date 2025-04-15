@@ -42,7 +42,7 @@ public:
 			"ADCResistanceSensor",
 			SensorTypeID::ADC_RESISTANCE,
 			id,
-			*(new I2CImpl(0)),
+			*(new I2CImpl(0, nullptr)),
 			0.0f,
 			new SlimeVR::EmptySensorInterface
 		)

@@ -118,6 +118,8 @@ public:
 	TPSCounter m_dataCounter;
 	SlimeVR::SensorInterface* m_hwInterface = nullptr;
 
+	virtual void setupExternalMag(SlimeVR::SensorInterface* interface){};
+
 protected:
 	SlimeVR::Sensors::RegisterInterface& m_RegisterInterface;
 	uint8_t addr;

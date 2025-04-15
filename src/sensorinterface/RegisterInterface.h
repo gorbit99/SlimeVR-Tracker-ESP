@@ -23,6 +23,7 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
 
 #include "I2Cdev.h"
 
@@ -42,4 +43,4 @@ struct RegisterInterface {
 	virtual std::string toString() const = 0;
 };
 
-}  // namespace SlimeVR::Sensors::SoftFusion
+}  // namespace SlimeVR::Sensors

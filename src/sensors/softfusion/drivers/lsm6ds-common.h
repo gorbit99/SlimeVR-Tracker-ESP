@@ -25,9 +25,13 @@
 
 #include <algorithm>
 #include <array>
+#include <cassert>
 #include <cstdint>
+#include <cstring>
+#include <optional>
 
 #include "../../../sensorinterface/RegisterInterface.h"
+#include "../mag/MagDriver.h"
 
 namespace SlimeVR::Sensors::SoftFusion::Drivers {
 
@@ -102,8 +106,115 @@ struct LSM6DSOutputHandler {
 				case 0x03:  // Temperature
 					processTempSample(entry.xyz[0], TempTs);
 					break;
+				case 0x0e:  // Sensor Hub Slave 0
+					if (magCallback) {
+						(*magCallback)(entry.raw);
+					}
+					break;
 			}
 		}
+	}
+
+	uint8_t currentAuxDeviceId = 0;
+	std::optional<std::function<void(uint8_t magData[9])>> magCallback;
+
+	void setAuxId(uint8_t id) { currentAuxDeviceId = id; }
+
+	template <typename Regs>
+	void pollUntilSet(uint8_t address, uint8_t bits) {
+		uint8_t value;
+		do {
+			value = m_RegisterInterface.readReg(address);
+		} while ((value & bits) != bits);
+	}
+
+	template <typename Regs>
+	void writeAux(uint8_t address, uint8_t value) {
+		m_RegisterInterface.writeReg(
+			Regs::FuncCFGAccess::reg,
+			Regs::FuncCFGAccess::sensorHubAccessOn
+		);
+		m_RegisterInterface.writeReg(Regs::SLV0Add, currentAuxDeviceId << 1 | 0b0);
+		m_RegisterInterface.writeReg(Regs::SLV0Subadd, address);
+		m_RegisterInterface.writeReg(Regs::SLV0Config::reg, 0x00);
+		m_RegisterInterface.writeReg(Regs::DatawriteSLV0, value);
+		m_RegisterInterface.writeReg(
+			Regs::MasterConfig::reg,
+			Regs::MasterConfig::valueOneShot
+		);
+		pollUntilSet<Regs>(Regs::StatusMaster, 0x80);
+		m_RegisterInterface.writeReg(
+			Regs::MasterConfig::reg,
+			Regs::MasterConfig::valueDisable
+		);
+		delayMicroseconds(300);
+		m_RegisterInterface.writeReg(
+			Regs::FuncCFGAccess::reg,
+			Regs::FuncCFGAccess::sensorHubAccessOff
+		);
+	}
+
+	template <typename Regs>
+	uint8_t readAux(uint8_t address) {
+		m_RegisterInterface.writeReg(
+			Regs::FuncCFGAccess::reg,
+			Regs::FuncCFGAccess::sensorHubAccessOn
+		);
+		m_RegisterInterface.writeReg(Regs::SLV0Add, currentAuxDeviceId << 1 | 0b1);
+		m_RegisterInterface.writeReg(Regs::SLV0Subadd, address);
+		m_RegisterInterface.writeReg(Regs::SLV0Config::reg, 1);
+		m_RegisterInterface.writeReg(
+			Regs::MasterConfig::reg,
+			Regs::MasterConfig::valueOneShot
+		);
+		m_RegisterInterface.writeReg(
+			Regs::FuncCFGAccess::reg,
+			Regs::FuncCFGAccess::sensorHubAccessOff
+		);
+		pollUntilSet<Regs>(Regs::StatusReg, 0x01);
+		pollUntilSet<Regs>(Regs::StatusMasterMainPage, 0x01);
+		m_RegisterInterface.writeReg(
+			Regs::FuncCFGAccess::reg,
+			Regs::FuncCFGAccess::sensorHubAccessOn
+		);
+		m_RegisterInterface.writeReg(
+			Regs::MasterConfig::reg,
+			Regs::MasterConfig::valueDisable
+		);
+		delayMicroseconds(300);
+		uint8_t result = m_RegisterInterface.readReg(Regs::SensorHub1);
+		m_RegisterInterface.readReg(Regs::SensorHub1);
+		m_RegisterInterface.writeReg(
+			Regs::FuncCFGAccess::reg,
+			Regs::FuncCFGAccess::sensorHubAccessOff
+		);
+		return result;
+	}
+
+	template <typename Regs>
+	void setupAuxPolling(
+		uint8_t address,
+		Mag::MagDefinition::DataWidth byteWidth,
+		std::function<void(const uint8_t magData[9])>&& magDataCallback
+	) {
+		assert(byteWidth == Mag::MagDefinition::DataWidth::SixByte);
+		m_RegisterInterface.writeReg(
+			Regs::FuncCFGAccess::reg,
+			Regs::FuncCFGAccess::sensorHubAccessOn
+		);
+		m_RegisterInterface.writeReg(Regs::SLV0Add, currentAuxDeviceId << 1 | 0b1);
+		m_RegisterInterface.writeReg(Regs::SLV0Subadd, address);
+		m_RegisterInterface.writeReg(Regs::SLV0Config::reg, Regs::SLV0Config::value);
+		m_RegisterInterface.writeReg(
+			Regs::MasterConfig::reg,
+			Regs::MasterConfig::value
+		);
+		m_RegisterInterface.writeReg(
+			Regs::FuncCFGAccess::reg,
+			Regs::FuncCFGAccess::sensorHubAccessOff
+		);
+
+		this->magCallback = magDataCallback;
 	}
 };
 

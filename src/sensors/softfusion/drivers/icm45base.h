@@ -23,6 +23,7 @@
 #include <algorithm>
 #include <array>
 #include <cstdint>
+#include <vector>
 
 #include "../../../sensorinterface/RegisterInterface.h"
 
@@ -154,6 +155,8 @@ struct ICM45Base {
 		return true;
 	}
 
+	std::vector<uint8_t> read_buffer{FullFifoEntrySize * 8};  // max 8 readings
+
 	template <typename AccelCall, typename GyroCall, typename TempCall>
 	void bulkRead(
 		AccelCall&& processAccelSample,
@@ -163,7 +166,6 @@ struct ICM45Base {
 		const auto fifo_packets = m_RegisterInterface.readReg16(BaseRegs::FifoCount);
 		const auto fifo_bytes = fifo_packets * sizeof(FullFifoEntrySize);
 
-		std::array<uint8_t, FullFifoEntrySize * 8> read_buffer;  // max 8 readings
 		const auto bytes_to_read = std::min(
 									   static_cast<size_t>(read_buffer.size()),
 									   static_cast<size_t>(fifo_bytes)

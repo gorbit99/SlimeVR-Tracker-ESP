@@ -1,6 +1,6 @@
 /*
 	SlimeVR Code is placed under the MIT license
-	Copyright (c) 2022 TheDevMinerTV
+	Copyright (c) 2025 Gorbit99 & SlimeVR Contributors
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -21,30 +21,36 @@
 	THE SOFTWARE.
 */
 
-#ifndef SENSORS_ERRONEOUSSENSOR_H
-#define SENSORS_ERRONEOUSSENSOR_H
+#pragma once
 
-#include "sensor.h"
+#include <cstdint>
+#include <functional>
 
-namespace SlimeVR {
-namespace Sensors {
-class ErroneousSensor : public Sensor {
+#include "../../../sensorinterface/RegisterInterface.h"
+#include "MagDriver.h"
+
+namespace SlimeVR::Sensors::SoftFusion::Mag {
+
+class PollingMagDriver : public MagDriver {
 public:
-	ErroneousSensor(uint8_t id, SensorTypeID type)
-		: Sensor("ErroneousSensor", type, id, *(new I2CImpl(0, nullptr)), 0.0)
-		, m_ExpectedType(type){};
-	~ErroneousSensor(){};
+	explicit PollingMagDriver(std::function<RegisterInterface*(uint8_t)>&& getInterface
+	);
+	void update() final;
 
-	void motionSetup() override;
-	void motionLoop() override final{};
-	void sendData() override{};
-	void startCalibration(int calibrationType) override final{};
-	SensorStatus getSensorState() override final;
+protected:
+	void writeReg(uint8_t reg, uint8_t value) final;
+	uint8_t readReg(uint8_t reg) final;
+	void setId(uint8_t deviceId) final;
+
+	void setup() final;
 
 private:
-	SensorTypeID m_ExpectedType;
-};
-}  // namespace Sensors
-}  // namespace SlimeVR
+	static constexpr uint32_t MagPollingRateHz = 100;
+	static constexpr uint32_t MagPollingRateMicros = 1000'000'000 / MagPollingRateHz;
 
-#endif
+	uint64_t lastPollTimeMicros;
+	RegisterInterface* interface {};
+	std::function<RegisterInterface*(uint8_t)> getInterface;
+};
+
+}  // namespace SlimeVR::Sensors::SoftFusion::Mag

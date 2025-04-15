@@ -193,6 +193,12 @@ public:
 		// Apply sensor info list
 		SENSOR_INFO_LIST;
 
+		auto EXT_MAG_INFO = [&](uint8_t sensorId, SensorInterface* interface) {
+			m_Manager->m_Sensors[sensorId]->setupExternalMag(interface);
+		};
+
+		SENSOR_EXT_MAGS;
+
 		return activeSensorCount;
 	}
 
@@ -449,7 +455,7 @@ public:
 		uint8_t address = imuAddress > 0 ? imuAddress : ImuType::Address + sensorID;
 		return buildSensorReal<ImuType>(
 			sensorID,
-			*(new I2CImpl(address)),
+			*(new I2CImpl(address, sensorInterface)),
 			rotation,
 			sensorInterface,
 			optional,

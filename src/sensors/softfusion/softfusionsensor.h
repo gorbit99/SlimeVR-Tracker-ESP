@@ -25,6 +25,7 @@
 
 #include <cstdint>
 #include <cstdlib>
+#include <memory>
 #include <tuple>
 
 #include "../../sensorinterface/i2cimpl.h"
@@ -32,6 +33,9 @@
 #include "../SensorFusionRestDetect.h"
 #include "../sensor.h"
 #include "GlobalVars.h"
+#include "mag/AuxMagDriver.h"
+#include "mag/MagDriver.h"
+#include "mag/PollingMagDriver.h"
 #include "motionprocessing/types.h"
 #include "sensors/softfusion/TempGradientCalculator.h"
 
@@ -69,6 +73,9 @@ class SoftFusionSensor : public Sensor {
 	using Calib = Calibrator<SensorType, RawSensorT, RawVectorT>;
 
 	static constexpr auto UpsideDownCalibrationInit = Calib::HasUpsideDownCalibration;
+
+	static constexpr auto SupportsAuxIMU
+		= requires(SensorType& imu, uint8_t reg) { imu.readAux(reg); };
 
 	static constexpr float DirectTempReadFreq = 15;
 	static constexpr float DirectTempReadTs = 1.0f / DirectTempReadFreq;
@@ -313,6 +320,18 @@ public:
 			optimistic_yield(100);
 		}
 
+		if (!USE_6_AXIS
+			&& magDriver->getState() == SoftFusion::Mag::MagDriver::State::Ok) {
+			magDriver->update();
+
+			if (magDriver->hasNewSample()) {
+				float sample[3];
+				magDriver->getMagSample(sample);
+				m_fusion.updateMag(sample, SensorType::MagTs);
+				printf("[TEST] New Sample\n");
+			}
+		}
+
 		if (calibrationDetector.update(m_fusion)) {
 			markRestCalibrationComplete();
 		}
@@ -395,6 +414,13 @@ public:
 				ledManager.off();
 			}
 		}
+
+		if constexpr (!USE_6_AXIS && SupportsAuxIMU) {
+			magDriver
+				= std::make_unique<SoftFusion::Mag::AuxMagDriver<SensorType>>(m_sensor);
+
+			magDriver->init();
+		}
 	}
 
 	void startCalibration(int calibrationType) final {
@@ -403,6 +429,17 @@ public:
 			[&](const uint32_t seconds) { eatSamplesForSeconds(seconds); },
 			[&](const uint32_t millis) { return eatSamplesReturnLast(millis); }
 		);
+	}
+
+	void setupExternalMag(SensorInterface* interface) final {
+		if (!USE_6_AXIS) {
+			auto interfaceGenerator
+				= [&](uint8_t deviceId) { return new I2CImpl(deviceId, interface); };
+			magDriver = std::make_unique<SoftFusion::Mag::PollingMagDriver>(
+				std::move(interfaceGenerator)
+			);
+			magDriver->init();
+		}
 	}
 
 	SensorStatus getSensorState() final { return m_status; }
@@ -416,8 +453,7 @@ public:
 		m_Logger,
 		getDefaultTempTs(),
 		AScale,
-		GScale
-	};
+		GScale};
 
 	SensorStatus m_status = SensorStatus::SENSOR_OFFLINE;
 	uint32_t m_lastPollTime = micros();
@@ -442,9 +478,11 @@ public:
 		if (!I2CSCAN::hasDevOnBus(address)) {
 			return false;
 		}
-		const I2CImpl& i2c = I2CImpl(address);
+		const I2CImpl& i2c = I2CImpl(address, nullptr);
 		return checkPresent(sensorID, i2c);
 	}
+
+	std::unique_ptr<SoftFusion::Mag::MagDriver> magDriver;
 };
 
 }  // namespace SlimeVR::Sensors

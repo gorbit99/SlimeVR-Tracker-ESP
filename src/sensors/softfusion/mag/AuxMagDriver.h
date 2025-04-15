@@ -1,6 +1,6 @@
 /*
 	SlimeVR Code is placed under the MIT license
-	Copyright (c) 2022 TheDevMinerTV
+	Copyright (c) 2025 Gorbit99 & SlimeVR Contributors
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -21,30 +21,45 @@
 	THE SOFTWARE.
 */
 
-#ifndef SENSORS_ERRONEOUSSENSOR_H
-#define SENSORS_ERRONEOUSSENSOR_H
+#pragma once
 
-#include "sensor.h"
+#include "MagDriver.h"
 
-namespace SlimeVR {
-namespace Sensors {
-class ErroneousSensor : public Sensor {
+template <typename IMU>
+concept ImuWithAux = requires(IMU& imu, uint8_t reg) { imu.readAux(reg); };
+
+namespace SlimeVR::Sensors::SoftFusion::Mag {
+
+template <ImuWithAux IMU>
+class AuxMagDriver : public MagDriver {
 public:
-	ErroneousSensor(uint8_t id, SensorTypeID type)
-		: Sensor("ErroneousSensor", type, id, *(new I2CImpl(0, nullptr)), 0.0)
-		, m_ExpectedType(type){};
-	~ErroneousSensor(){};
+	explicit AuxMagDriver(IMU& imu)
+		: MagDriver{"AuxMagDriver"}
+		, imu{imu} {}
+	void update() final {}
 
-	void motionSetup() override;
-	void motionLoop() override final{};
-	void sendData() override{};
-	void startCalibration(int calibrationType) override final{};
-	SensorStatus getSensorState() override final;
+protected:
+	void writeReg(uint8_t reg, uint8_t value) final { imu.writeAux(reg, value); }
+
+	uint8_t readReg(uint8_t reg) final { return imu.readAux(reg); }
+
+	void setId(uint8_t deviceId) final { imu.setAuxId(deviceId); }
+
+	void setup() final {
+		const auto callback = [&](const uint8_t magData[9]) {
+			memcpy(lastSample, magData, sizeof(lastSample));
+			newSample = true;
+		};
+
+		imu.setupAuxPolling(
+			magDefinition.dataReg,
+			magDefinition.dataWidth,
+			std::move(callback)
+		);
+	}
 
 private:
-	SensorTypeID m_ExpectedType;
+	IMU& imu;
 };
-}  // namespace Sensors
-}  // namespace SlimeVR
 
-#endif
+}  // namespace SlimeVR::Sensors::SoftFusion::Mag
